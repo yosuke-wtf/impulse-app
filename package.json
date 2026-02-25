@@ -41,7 +41,7 @@
             {
                 "provider": "github",
                 "owner": "yosuke-wtf",
-                "repo": "impulse"
+                "repo": "impulse-app"
             }
         ],
         "win": {
