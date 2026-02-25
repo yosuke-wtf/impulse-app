@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impulse | Pro Companion</title>
+    <link rel="stylesheet" href="./src/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <div class="drag-region"></div>
+    <div id="login-screen">
+        <div class="login-card">
+            <img src="./logo.png" alt="Impulse Logo" class="app-icon shadow-glow">
+            <h1>IMPULSE</h1>
+
+            <!-- Detection State -->
+            <div id="detection-view">
+                <p id="login-status">Detecting League of Legends Client...</p>
+                <div class="loading-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <button id="manual-login-trigger" class="action-btn-text" style="margin-top: 20px;">
+                    LOGIN
+                </button>
+            </div>
+
+            <!-- Manual Login State -->
+            <div id="manual-login-view" style="display: none; width: 100%; margin-top: 20px;">
+                <div class="settings-form" style="padding: 0;">
+                    <div class="form-group">
+                        <label style="text-align: left; display: block;">Summoner Name</label>
+                        <input type="text" id="login-summoner-name" placeholder="Name#TAG (e.g. TopG#EUW)">
+                    </div>
+                    <div class="form-group">
+                        <label style="text-align: left; display: block;">Region</label>
+                        <select id="login-region">
+                            <option value="euw1">Europe West</option>
+                            <option value="na1">North America</option>
+                            <option value="kr">Korea</option>
+                            <option value="eun1">Europe Nordic & East</option>
+                            <option value="br1">Brazil</option>
+                            <option value="jp1">Japan</option>
+                            <option value="la1">Latin America North</option>
+                            <option value="la2">Latin America South</option>
+                            <option value="oc1">Oceania</option>
+                            <option value="tr1">Turkey</option>
+                            <option value="ru">Russia</option>
+                            <option value="ph2">Philippines</option>
+                            <option value="sg2">Singapore</option>
+                            <option value="th2">Thailand</option>
+                            <option value="vn2">Vietnam</option>
+                        </select>
+                    </div>
+                    <button id="login-submit-btn" class="action-btn-primary" style="width: 100%; margin-top: 10px;">
+                        READY TO PLAY
+                    </button>
+                    <button id="back-to-detection" class="action-btn-text" style="margin-top: 15px; width: 100%;">
+                        BACK TO DETECTION
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="app">
+        <aside class="sidebar">
+            <div class="brand">
+                <img src="./logo.png" alt="Impulse Logo" class="app-icon">
+                <div class="brand-text">
+                    <span class="brand-name">IMPULSE</span>
+                    <span class="brand-tag">PREMIUM</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#" class="nav-link active" data-tab="dashboard">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Overview</span>
+                </a>
+                <div class="nav-label">SCOUTING</div>
+                <a href="#" class="nav-link" data-tab="statistics">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>LoL Statistics</span>
+                </a>
+                <a href="#" class="nav-link" data-tab="champions">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Champions</span>
+                </a>
+                <a href="#" class="nav-link" data-tab="tierlist">
+                    <i class="fa-solid fa-award"></i>
+                    <span>Tier List</span>
+                </a>
+                <div class="nav-label">USER</div>
+                <a href="#" class="nav-link" data-tab="live">
+                    <i class="fa-solid fa-bolt-lightning"></i>
+                    <span>Live Game</span>
+                </a>
+                <a href="#" class="nav-link" data-tab="overlays">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>Overlays</span>
+                </a>
+                <a href="#" class="nav-link" data-tab="history">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Match History</span>
+                </a>
+                <div class="nav-divider"></div>
+                <a href="#" class="nav-link" data-tab="admin">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Admin Panel</span>
+                </a>
+                <a href="#" class="nav-link" data-tab="settings">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-status">
+                <div class="connection-status">
+                    <span class="pulse-dot"></span>
+                    <span class="status-text">LCU CONNECTED</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="content-area">
+            <header class="header-bar">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Track Summoner...">
+                </div>
+                <div class="header-actions">
+                    <div style="position: relative;">
+                        <button class="icon-btn" id="notif-btn">
+                            <i class="fa-solid fa-bell"></i>
+                            <div id="notif-dot"
+                                style="position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; display: none; border: 2px solid var(--bg-dark);">
+                            </div>
+                        </button>
+                        <div id="notif-flyout" class="widget-card"
+                            style="display: none; position: absolute; top: 50px; right: 0; width: 320px; z-index: 1000; padding: 20px;">
+                            <div class="widget-header" style="margin-bottom: 12px; font-size: 0.7rem;"><i
+                                    class="fa-solid fa-bullhorn" style="color: var(--warning);"></i> LATEST ANNOUNCEMENT
+                            </div>
+                            <p id="notif-text" style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.5;">
+                                No current announcements.</p>
+                        </div>
+                    </div>
+                    <div class="profile-card">
+                        <div class="profile-info">
+                            <span class="p-name" id="summoner-name-display">League Acc...</span>
+                            <span class="p-rank" id="summoner-rank-display">Connecting</span>
+                        </div>
+                        <div class="p-avatar" id="summoner-icon"></div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="view-container">
+                <!-- DASHBOARD VIEW -->
+                <section id="view-dashboard" class="tab-view active">
+                    <div class="dash-hero"
+                        style="background: linear-gradient(135deg, rgba(13, 20, 38, 0.9) 0%, rgba(6, 9, 20, 0.9) 100%); border: 1px solid var(--border); border-radius: 20px; padding: 32px; display: flex; gap: 32px; align-items: stretch; margin-bottom: 24px; position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; right: -50px; top: -50px; width: 300px; height: 300px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); opacity: 0.4; filter: blur(40px);">
+                        </div>
+
+                        <div class="dh-profile" style="display: flex; gap: 24px; align-items: center; z-index: 1;">
+                            <div id="dh-avatar-img"
+                                style="width: 100px; height: 100px; border-radius: 24px; border: 3px solid rgba(255,255,255,0.1); background-size: cover; background-color: #1e293b; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                            </div>
+                            <div class="dh-info"
+                                style="display: flex; flex-direction: column; justify-content: center;">
+                                <h2 id="welcome-name"
+                                    style="font-family: 'Outfit'; font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; line-height: 1;">
+                                    Summoner</h2>
+                                <div class="dh-badges" style="display: flex; gap: 10px;">
+                                    <span
+                                        style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px;"><i
+                                            class="fa-solid fa-star" style="color: var(--accent-gold);"></i> <span
+                                            id="dh-winrate">No data</span></span>
+                                    <span
+                                        style="background: rgba(0, 242, 255, 0.1); border: 1px solid rgba(0, 242, 255, 0.2); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 6px;"><i
+                                            class="fa-solid fa-trophy"></i> <span id="dh-rank">Unranked</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="width: 1px; background: var(--border); margin: 0 10px; z-index: 1;"></div>
+
+                        <div id="dashboard-summary"
+                            style="flex: 1; z-index: 1; display: flex; flex-direction: column; justify-content: center; color: var(--text-muted); font-size: 0.9rem;">
+                            Detecting your recent performance...
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="widget-card stats-widget shadow-glow">
+                            <div class="widget-header">
+                                <i class="fa-solid fa-chart-pie"></i>
+                                <span>RECENT PERFORMANCE (LAST 5)</span>
+                            </div>
+                            <div id="dh-recent-perf">
+                                <div style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
+                                    <i class="fa-solid fa-circle-notch fa-spin"
+                                        style="font-size: 2rem; margin-bottom: 15px; color: var(--accent);"></i><br>
+                                    Loading match history mechanics...
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="widget-card announcement-widget">
+                            <div class="widget-header">
+                                <i class="fa-solid fa-bullhorn"></i>
+                                <span>LATEST ANNOUNCEMENT</span>
+                            </div>
+                            <div id="dh-announcement-content"
+                                style="display: flex; flex-direction: column; justify-content: center; height: 100%; min-height: 200px;">
+                                <div style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
+                                    <i class="fa-solid fa-comment-slash"
+                                        style="font-size: 2rem; margin-bottom: 15px; opacity: 0.5;"></i><br>
+                                    No announcements yet.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ARENA VIEW -->
+                <section id="view-arena" class="tab-view">
+                    <div class="view-header">
+                        <h1>Arena <span class="accent">Tier List</span></h1>
+                    </div>
+                    <div class="tier-container">
+                        <div class="tier-section">
+                            <div class="tier-header-row">
+                                <div class="tier-label tier-s">S TIER</div>
+                            </div>
+                            <div class="tier-grid">
+                                <div class="tier-card">
+                                    <div class="champ-img-box"></div>
+                                    <div class="tier-info">
+                                        <span class="t-name">Xin Zhao</span>
+                                        <span class="t-rate">60.2%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- URF VIEW -->
+                <section id="view-urf" class="tab-view">
+                    <div class="view-header">
+                        <h1>URF <span class="accent">Power Rankings</span></h1>
+                    </div>
+                    <div class="tier-container">
+                        <div class="tier-section">
+                            <div class="tier-header-row">
+                                <div class="tier-label tier-s">S TIER</div>
+                            </div>
+                            <div class="tier-grid">
+                                <div class="tier-card">
+                                    <div class="champ-img-box"></div>
+                                    <div class="tier-info">
+                                        <span class="t-name">Olaf</span>
+                                        <span class="t-rate">59.8%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- LIVE GAME VIEW -->
+                <section id="view-live" class="tab-view">
+                    <div class="view-header">
+                        <h1>Live <span class="accent">Tracking</span></h1>
+                        <p>In-depth analysis of your current active match.</p>
+                    </div>
+                    <div class="live-grid">
+                        <div class="widget-card table-widget">
+                            <div class="widget-header">MATCH PARTICIPANTS</div>
+                            <div class="participants-list">
+                                <div class="participant-row ally">
+                                    <div class="champ-img"></div>
+                                    <span class="p-name">Ally Player 1</span>
+                                    <span class="p-rank">Gold I</span>
+                                    <span class="p-winrate">52% WR</span>
+                                </div>
+                                <div class="participant-row enemy">
+                                    <div class="champ-img"></div>
+                                    <span class="p-name">Enemy Player 1</span>
+                                    <span class="p-rank">Platinum III</span>
+                                    <span class="p-winrate">58% WR</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- STATISTICS VIEW -->
+                <section id="view-statistics" class="tab-view">
+                    <div class="view-header">
+                        <h1>LoL <span class="accent">Statistics</span></h1>
+                        <p>Global champion performance and win rates.</p>
+                    </div>
+
+                    <div class="stats-filter-container">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="stats-search" placeholder="Search Champions...">
+                        </div>
+                        <div class="filter-controls">
+                            <select id="rank-filter">
+                                <option>Diamond+</option>
+                                <option>Emerald+</option>
+                                <option>Gold+</option>
+                            </select>
+                            <select id="region-filter">
+                                <option>World</option>
+                                <option>EUW</option>
+                                <option>NA</option>
+                                <option>KR</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="tierlist-table-container">
+                        <table class="tier-table">
+                            <thead>
+                                <tr>
+                                    <th>RANK</th>
+                                    <th>CHAMPION</th>
+                                    <th>TIER</th>
+                                    <th>WIN RATE</th>
+                                    <th>BAN RATE</th>
+                                    <th>PICK RATE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stats-list-body">
+                                <!-- Data will be populated by renderer.ts -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- CHAMPIONS VIEW -->
+                <section id="view-champions" class="tab-view">
+                    <div class="view-header">
+                        <h1>Champion <span class="accent">Database</span></h1>
+                        <p>Browse champions by role and category.</p>
+                    </div>
+
+                    <div class="champions-filter-bar">
+                        <div class="role-filters">
+                            <button class="role-btn active" data-role="all">All</button>
+                            <button class="role-btn" data-role="Fighter"><i class="fa-solid fa-shield"></i> Top</button>
+                            <button class="role-btn" data-role="Assassin"><i class="fa-solid fa-leaf"></i>
+                                Jungle</button>
+                            <button class="role-btn" data-role="Mage"><i class="fa-solid fa-wand-sparkles"></i>
+                                Mid</button>
+                            <button class="role-btn" data-role="Marksman"><i class="fa-solid fa-bolt"></i> Bot</button>
+                            <button class="role-btn" data-role="Support"><i class="fa-solid fa-clippy"></i>
+                                Support</button>
+                        </div>
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="champ-search" placeholder="Search champion...">
+                        </div>
+                    </div>
+                    <div id="champions-grid" class="champion-grid">
+                        <!-- Champions will be loaded here -->
+                    </div>
+                </section>
+
+                <!-- TIER LIST VIEW -->
+                <section id="view-tierlist" class="tab-view">
+                    <div class="view-header">
+                        <h1>Global <span class="accent">Tier List</span></h1>
+                        <p>Meta rankings based on winrates and pickrates across all regions.</p>
+                    </div>
+
+                    <div class="view-submenu">
+                        <a href="#" class="submenu-link active">Rangliste Solo</a>
+                        <a href="#" class="submenu-link">ARAM</a>
+                        <a href="#" class="submenu-link">ARAM Mayhem</a>
+                        <a href="#" class="submenu-link">URF</a>
+                        <a href="#" class="submenu-link">Arena</a>
+                        <a href="#" class="submenu-link">Arena Duos</a>
+                    </div>
+
+                    <div class="tierlist-container">
+                        <div class="tier-section" id="tier-sp">
+                            <div class="tier-label s-tier">S+</div>
+                            <div class="tier-row" id="tier-sp-row"></div>
+                        </div>
+                        <div class="tier-section" id="tier-s">
+                            <div class="tier-label s-tier">S</div>
+                            <div class="tier-row" id="tier-s-row"></div>
+                        </div>
+                        <div class="tier-section" id="tier-a">
+                            <div class="tier-label a-tier">A</div>
+                            <div class="tier-row" id="tier-a-row"></div>
+                        </div>
+                        <div class="tier-section" id="tier-b">
+                            <div class="tier-label b-tier">B</div>
+                            <div class="tier-row" id="tier-b-row"></div>
+                        </div>
+                        <div class="tier-section" id="tier-c">
+                            <div class="tier-label c-tier">C</div>
+                            <div class="tier-row" id="tier-c-row"></div>
+                        </div>
+                        <div class="tier-section" id="tier-d">
+                            <div class="tier-label d-tier">D</div>
+                            <div class="tier-row" id="tier-d-row"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- HISTORY VIEW -->
+                <section id="view-history" class="tab-view">
+                    <div class="view-header">
+                        <h1>Match <span class="accent">History</span></h1>
+                    </div>
+                    <div class="history-list">
+                        <div class="history-item win">
+                            <div class="res-indicator"></div>
+                            <div class="champ-icon"></div>
+                            <div class="match-info">
+                                <span class="match-res">VICTORY</span>
+                                <span class="match-mode">Ranked Solo</span>
+                            </div>
+                            <div class="match-stats">15 / 4 / 8</div>
+                            <div class="match-time">24m 12s</div>
+                        </div>
+                        <div class="history-item loss">
+                            <div class="res-indicator"></div>
+                            <div class="champ-icon"></div>
+                            <div class="match-info">
+                                <span class="match-res">DEFEAT</span>
+                                <span class="match-mode">Ranked Solo</span>
+                            </div>
+                            <div class="match-stats">2 / 8 / 1</div>
+                            <div class="match-time">18m 45s</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- OVERLAYS VIEW -->
+                <section id="view-overlays" class="tab-view">
+                    <div class="view-header">
+                        <h1>Overlay <span class="accent">Management</span></h1>
+                        <p>Customize your in-game experience with tactical overlays.</p>
+                    </div>
+
+                    <div class="overlay-grid">
+                        <!-- Arena Augments -->
+                        <div class="overlay-card-item">
+                            <div class="overlay-preview"
+                                style="background-image: url('/arena_augments_preview_1772051986936.png');"></div>
+                            <div class="overlay-card-body">
+                                <div class="overlay-card-header">
+                                    <div class="overlay-title-group">
+                                        <span class="overlay-name">Arena-Augmente & Prismatische Gegenstände</span>
+                                        <span class="overlay-tag utility">Utility</span>
+                                    </div>
+                                    <div class="toggle-switch active"></div>
+                                </div>
+                                <p class="overlay-desc">Einfache und direkte Übersicht über die Arena-Augmente und
+                                    Prismatische Gegenstände, während du sie auswählst.</p>
+                            </div>
+                        </div>
+
+                        <!-- Benchmarking -->
+                        <div class="overlay-card-item">
+                            <div class="overlay-preview"
+                                style="background-image: url('/benchmarking_preview_1772052132998.png');"></div>
+                            <div class="overlay-card-body">
+                                <div class="overlay-card-header">
+                                    <div class="overlay-title-group">
+                                        <span class="overlay-name">Benchmarking</span>
+                                        <span class="overlay-tag performance">Leistung</span>
+                                    </div>
+                                    <div class="toggle-switch active"></div>
+                                </div>
+                                <p class="overlay-desc">Verfolge wichtige Leistungsindikatoren, um die Leistung in
+                                    Echtzeit besser beurteilen zu können.</p>
+                            </div>
+                        </div>
+
+                        <!-- ARAM Health Timers -->
+                        <div class="overlay-card-item">
+                            <div class="overlay-preview"
+                                style="background-image: url('/aram_timers_preview_1772052313797.png');"></div>
+                            <div class="overlay-card-body">
+                                <div class="overlay-card-header">
+                                    <div class="overlay-title-group">
+                                        <span class="overlay-name">ARAM Health Timers</span>
+                                        <span class="overlay-tag tracker">Tracker</span>
+                                    </div>
+                                    <div class="toggle-switch active"></div>
+                                </div>
+                                <p class="overlay-desc">Verfolge die Respawnzeiten der Heal Orbs in der Heulenden
+                                    Schlucht.</p>
+                            </div>
+                        </div>
+
+                        <!-- Gegenstands-Wertdifferenz -->
+                        <div class="overlay-card-item">
+                            <div class="overlay-preview"
+                                style="background-image: url('/gold_diff_preview_v3_1772052624194.png');"></div>
+                            <div class="overlay-card-body">
+                                <div class="overlay-card-header">
+                                    <div class="overlay-title-group">
+                                        <span class="overlay-name">Gegenstands-Wertdifferenz</span>
+                                        <span class="overlay-tag tracker">Tracker</span>
+                                    </div>
+                                    <div class="toggle-switch active"></div>
+                                </div>
+                                <p class="overlay-desc">Einfaches Bewerten und Vergleichen des Wertes von Items aus
+                                    Spielerinventaren.</p>
+                            </div>
+                        </div>
+
+                        <!-- Jungle Pfadfindung -->
+                        <div class="overlay-card-item">
+                            <div class="overlay-preview"
+                                style="background-image: url('/jungle_pathing_preview_v4_1772052757381.png');"></div>
+                            <div class="overlay-card-body">
+                                <div class="overlay-card-header">
+                                    <div class="overlay-title-group">
+                                        <span class="overlay-name">Jungle Pfadfindung</span>
+                                        <span class="overlay-tag tracker">Tracker</span>
+                                    </div>
+                                    <div class="toggle-switch"></div>
+                                </div>
+                                <p class="overlay-desc">Nimm den effektivsten Weg zur Räumung von Junglecamps, um das
+                                    Spiel zu dominieren.</p>
+                            </div>
+                        </div>
+
+                        <!-- Ladebildschirm -->
+                        <div class="overlay-card-item">
+                            <div class="overlay-preview"
+                                style="background-image: url('/loading_screen_preview_v4_1772052831719.png');"></div>
+                            <div class="overlay-card-body">
+                                <div class="overlay-card-header">
+                                    <div class="overlay-title-group">
+                                        <span class="overlay-name">Ladebildschirm</span>
+                                        <span class="overlay-tag tracker">Tracker</span>
+                                    </div>
+                                    <div class="toggle-switch active"></div>
+                                </div>
+                                <p class="overlay-desc">Erhalte wichtige Informationen über Verbündete, Feinde,
+                                    Champion-Matchups und mehr.</p>
+                            </div>
+                        </div>
+
+                        <!-- Minimap Timer -->
+                        <div class="overlay-card-item">
+                            <div class="overlay-preview"
+                                style="background-image: url('/minimap_timer_preview_v2_1772052415578.png');"></div>
+                            <div class="overlay-card-body">
+                                <div class="overlay-card-header">
+                                    <div class="overlay-title-group">
+                                        <span class="overlay-name">Minimap Timer</span>
+                                        <span class="overlay-tag tracker">Tracker</span>
+                                    </div>
+                                    <div class="toggle-switch active"></div>
+                                </div>
+                                <p class="overlay-desc">Verfolge die Respawn-Zeiten von Dschungelcamps und Inhibitoren.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Skill Order -->
+                        <div class="overlay-card-item">
+                            <div class="overlay-preview"
+                                style="background-image: url('/skill_order_preview_v2_1772052477525.png');"></div>
+                            <div class="overlay-card-body">
+                                <div class="overlay-card-header">
+                                    <div class="overlay-title-group">
+                                        <span class="overlay-name">Empfohlene Reihenfolge der Fertigkeiten</span>
+                                        <span class="overlay-tag utility">Utility</span>
+                                    </div>
+                                    <div class="toggle-switch"></div>
+                                </div>
+                                <p class="overlay-desc">Zeigt an, welche Fertigkeit im Spiel je nach ausgewähltem
+                                    Blitz-Build aufgestuft werden muss.</p>
+                            </div>
+                        </div>
+
+                        <!-- Ultimate Timer -->
+                        <div class="overlay-card-item">
+                            <div class="overlay-preview"
+                                style="background-image: url('/ultimate_timer_preview_v2_1772052514426.png');"></div>
+                            <div class="overlay-card-body">
+                                <div class="overlay-card-header">
+                                    <div class="overlay-title-group">
+                                        <span class="overlay-name">Ultimate Timer</span>
+                                        <span class="overlay-tag utility">Utility</span>
+                                    </div>
+                                    <div class="toggle-switch active"></div>
+                                </div>
+                                <p class="overlay-desc">Die Ultimate Timer der Teammates anzeigen.</p>
+                            </div>
+                        </div>
+
+                        <!-- Trinket Reminder -->
+                        <div class="overlay-card-item">
+                            <div class="overlay-preview"
+                                style="background-image: url('/trinket_reminder_preview_v2_1772052569301.png');"></div>
+                            <div class="overlay-card-body">
+                                <div class="overlay-card-header">
+                                    <div class="overlay-title-group">
+                                        <span class="overlay-name">Schmuckstück Erinnerung</span>
+                                        <span class="overlay-tag utility">Utility</span>
+                                        <span class="overlay-tag tracker">Tracker</span>
+                                    </div>
+                                    <div class="toggle-switch active"></div>
+                                </div>
+                                <p class="overlay-desc">Markiere das Trinket wenn es bereit ist verwendet zu werden.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ADMIN VIEW -->
+                <section id="view-admin" class="tab-view">
+                    <div class="view-header">
+                        <h1>Security <span class="accent">Admin Panel</span></h1>
+                        <p>Restricted access. Please identify yourself to proceed.</p>
+                    </div>
+
+                    <div id="admin-auth-container" class="widget-card"
+                        style="max-width: 500px; margin: 0 auto; text-align: center;">
+                        <i class="fa-solid fa-lock"
+                            style="font-size: 3rem; color: var(--accent); margin-bottom: 20px;"></i>
+                        <h2 style="margin-bottom: 10px;">Admin Authentication</h2>
+                        <p style="color: var(--text-muted); margin-bottom: 20px;">Please enter your Discord ID to verify
+                            your access level.</p>
+
+                        <div class="search-box" style="margin: 0 auto 20px; width: 100%;">
+                            <i class="fa-brands fa-discord"></i>
+                            <input type="text" id="admin-discord-id" placeholder="e.g. 969721082691088454"
+                                style="text-align: center;">
+                        </div>
+
+                        <button id="admin-verify-btn" class="action-btn-primary"
+                            style="margin: 0 auto; width: auto; padding: 12px 32px;">
+                            Verify Access
+                        </button>
+                        <p id="admin-auth-msg"
+                            style="margin-top: 15px; font-weight: 700; color: var(--danger); display: none;">Access
+                            Denied
+                        </p>
+                    </div>
+
+                    <div id="admin-dashboard" style="display: none;">
+                        <div class="dashboard-grid">
+                            <div class="widget-card" style="grid-column: 1 / -1;">
+                                <div class="widget-header"><i class="fa-solid fa-bullhorn"></i> GLOBAL ANNOUNCEMENT
+                                </div>
+                                <div style="display: flex; gap: 15px;">
+                                    <div class="search-box" style="flex: 0 0 200px;">
+                                        <i class="fa-brands fa-discord" style="color: #5865F2;"></i>
+                                        <input type="text" id="admin-announce-author" placeholder="Author Name">
+                                    </div>
+                                    <div class="search-box" style="flex: 1; max-width: none;">
+                                        <i class="fa-solid fa-pen"></i>
+                                        <input type="text" id="admin-announce-input"
+                                            placeholder="Type an announcement to broadcast to all users...">
+                                    </div>
+                                    <button id="admin-announce-btn" class="action-btn-primary"
+                                        style="width: auto; padding: 10px 24px;">Publish</button>
+                                </div>
+                                <p id="admin-announce-msg"
+                                    style="margin-top: 10px; color: var(--success); font-size: 0.85rem; display: none;">
+                                    Announcement published successfully!</p>
+                            </div>
+                            <div class="widget-card">
+                                <div class="widget-header"><i class="fa-solid fa-server"></i> SERVER STATUS</div>
+                                <div class="stat-row" style="justify-content: space-between;">
+                                    <span>API Status</span>
+                                    <span class="success-text">Online</span>
+                                </div>
+                                <div class="stat-row" style="justify-content: space-between;">
+                                    <span>Active Connections</span>
+                                    <span style="color: var(--accent);">342</span>
+                                </div>
+                            </div>
+                            <div class="widget-card">
+                                <div class="widget-header"><i class="fa-solid fa-shield-halved"></i> SECURITY</div>
+                                <p style="color: var(--text-muted); font-size: 0.85rem;">Welcome to the secure area.
+                                    Your
+                                    Discord ID has been verified against the environment whitelist.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SETTINGS VIEW -->
+                <section id="view-settings" class="tab-view">
+                    <div class="view-header">
+                        <h1>Application <span class="accent">Settings</span></h1>
+                    </div>
+                    <div class="settings-grid">
+                        <div class="widget-card">
+                            <div class="widget-header">CONNECTED ACCOUNT</div>
+                            <div class="settings-form">
+                                <div class="participant-row">
+                                    <div class="p-avatar" id="settings-p-avatar" style="width: 32px; height: 32px;">
+                                    </div>
+                                    <span class="p-name current-acc-name">Not Connected</span>
+                                    <button class="action-btn-primary logout-btn"
+                                        style="width: auto; padding: 8px 16px; font-size: 0.7rem;">LOGOUT</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <!-- IN-GAME OVERLAY CONTAINER (Transparent Window Content) -->
+    <div id="in-game-overlay" style="display: none;">
+        <div class="overlay-card blur-card">
+            <div class="overlay-header">
+                <img src="./logo.png" style="width: 20px;">
+                <span>IMPULSE OVERLAY</span>
+                <i class="fa-solid fa-thumbtack active"></i>
+            </div>
+            <div class="overlay-content">
+                <div class="live-status-pill">LIVE TRACKING</div>
+                <div class="current-champ-box">
+                    <div id="overlay-champ-icon" class="champ-icon-large"></div>
+                    <div class="champ-meta">
+                        <span id="overlay-champ-name">Detected...</span>
+                        <span id="overlay-game-mode">Summoner's Rift</span>
+                    </div>
+                </div>
+
+                <div class="overlay-section">
+                    <div class="section-label">RECOMMENDED RUNES</div>
+                    <div class="rune-suggestion">
+                        <div class="rune-icon main"></div>
+                        <div class="rune-details">
+                            <span class="r-name">Precision: Conqueror</span>
+                            <span class="r-desc">Auto-Imported</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overlay-section">
+                    <div class="section-label">TEAM ANALYSIS</div>
+                    <div id="overlay-team-list" class="mini-team-list">
+                        <!-- Polled participants go here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./src/renderer.ts"></script>
+</body>
+
+</html>
