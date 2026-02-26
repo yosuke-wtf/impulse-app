@@ -1,17 +1,11 @@
-/**
- * ─────────────────────────────────────────────
- *  IMPULSE – In-Game Overlay UI
- *  Aktualisiert das transparente Overlay-Fenster
- *  (id="in-game-overlay") mit Live-Spieldaten.
- * ─────────────────────────────────────────────
- */
+
 
 import { state } from '../main/state';
 import { OVERLAY_TOGGLE_IDS, OVERLAY_BADGE_LABELS, isToggleActive } from './overlaySettings';
 
 const DDR = 'https://ddragon.leagueoflegends.com/cdn/14.4.1/img/champion';
 
-/** Schaltet zwischen Overlay-Modus und normalem App-Modus um */
+
 export function initOverlayMode(): void {
     if (window.location.hash !== '#overlay') return;
 
@@ -23,10 +17,7 @@ export function initOverlayMode(): void {
     document.body.style.backgroundColor = 'transparent';
 }
 
-/**
- * Befüllt das In-Game Overlay-Fenster mit Daten
- * des aktuellen Spiels (Champion, Team, aktive Overlays).
- */
+
 export function updateOverlayWindow(game: any): void {
     if (!game?.participants) return;
 
@@ -39,7 +30,7 @@ export function updateOverlayWindow(game: any): void {
     _updateActiveBadges();
 }
 
-// ── Private Hilfsfunktionen ──────────────────────────────────────────────────
+
 
 function _updateChampionSection(game: any, selfMatch: any): void {
     const champInfo = state.allChampions.find((c: any) => c.key === String(selfMatch?.championId));

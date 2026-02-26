@@ -1,17 +1,10 @@
-/**
- * ─────────────────────────────────────────────
- *  IMPULSE – Match History
- *  Holt die letzten Matches per IPC und rendert
- *  die detaillierten Match-Karten inkl. KDA,
- *  Items, Spells, Teilnehmer und Badges.
- * ─────────────────────────────────────────────
- */
 
-const DDR_CHAMP = 'https://ddragon.leagueoflegends.com/cdn/14.4.1/img/champion';
-const DDR_ITEM = 'https://ddragon.leagueoflegends.com/cdn/14.4.1/img/item';
-const DDR_SPELL = 'https://ddragon.leagueoflegends.com/cdn/14.4.1/img/spell';
 
-// Summoner Spell ID → Name Mapping
+const DDR_CHAMP = 'https://ddragon.leagueoflegends.com/cdn/16.4.1/img/champion';
+const DDR_ITEM = 'https://ddragon.leagueoflegends.com/cdn/16.4.1/img/item';
+const DDR_SPELL = 'https://ddragon.leagueoflegends.com/cdn/16.4.1/img/spell';
+
+
 const SPELL_MAP: Record<number, string> = {
     1: 'SummonerBoost', 3: 'SummonerExhaust', 4: 'SummonerFlash',
     6: 'SummonerHaste', 7: 'SummonerHeal', 11: 'SummonerSmite',
@@ -19,9 +12,9 @@ const SPELL_MAP: Record<number, string> = {
     21: 'SummonerBarrier', 32: 'SummonerSnowball',
 };
 
-// ── Public API ───────────────────────────────────────────────────────────────
 
-/** Holt Match-History vom Backend und rendert sie */
+
+
 export async function fetchMatchHistory(puuid: string, region?: string): Promise<void> {
     try {
         const matches = await window.ipcRenderer.invoke('get-recent-matches', puuid, region);
@@ -40,9 +33,9 @@ export async function fetchMatchHistory(puuid: string, region?: string): Promise
     }
 }
 
-// ── Private Hilfsfunktionen ──────────────────────────────────────────────────
 
-/** Rendert den Win-Rate / KDA Block auf dem Dashboard */
+
+
 function _renderDashboardPerformance(matches: any[]): void {
     const el = document.getElementById('dh-recent-perf');
     if (!el) return;
@@ -75,49 +68,53 @@ function _renderDashboardPerformance(matches: any[]): void {
         </div>`;
 }
 
-/** Baut eine vollständige Match-Karte als HTML-String */
+
 function _buildMatchCard(match: any, puuid: string): string {
-    // Ergebnis
+
     let statusText = match.win ? 'Sieg' : 'Verloren';
     let statusColor = match.win ? '#3b82f6' : '#ef4444';
     let cardBorder = match.win ? '#1d4ed8' : '#b91c1c';
     if (match.remake) { statusText = 'Abbruch'; statusColor = '#94a3b8'; cardBorder = '#475569'; }
 
-    // Zeitberechnung
+
     const diffH = Math.floor((Date.now() - match.timestamp) / 3_600_000);
     const timeAgo = diffH < 1 ? 'Vor wenigen Minuten'
         : diffH < 24 ? `Vor ${diffH} Stunden`
             : `Vor ${Math.floor(diffH / 24)} Tagen`;
 
-    // KDA
+
     const kda = match.deaths === 0 ? 'Perfekt' : ((match.kills + match.assists) / match.deaths).toFixed(1);
     const minutes = Math.floor(match.duration / 60);
     const secs = (match.duration % 60).toString().padStart(2, '0');
     const csPerMin = minutes > 0 ? (match.cs / minutes).toFixed(1) : '0';
 
-    // Spells
+
     const spell1 = SPELL_MAP[match.spells?.[0]] ?? 'SummonerFlash';
     const spell2 = SPELL_MAP[match.spells?.[1]] ?? 'SummonerDot';
 
-    // Items
+
     const item = (id: number, isTrinket = false) =>
         !id || id === 0
             ? `<div class="b-item empty ${isTrinket ? 'trinket' : ''}"></div>`
             : `<div class="b-item ${isTrinket ? 'trinket' : ''}"><img src="${DDR_ITEM}/${id}.png"/></div>`;
 
-    // Teams
+
     const team1 = (match.participants ?? []).filter((p: any) => p.teamId === 100);
     const team2 = (match.participants ?? []).filter((p: any) => p.teamId === 200);
     const playerCard = (p: any) => {
         const isMe = p.puuid === puuid;
+        const displayName = (p.riotIdGameName && p.riotIdGameName.trim().length > 0)
+            ? p.riotIdGameName
+            : (p.summonerName && p.summonerName.trim().length > 0 ? p.summonerName : 'Unknown');
+
         return `
-            <div class="b-player" title="${p.summonerName}">
+            <div class="b-player" title="${displayName}">
                 <div class="b-p-icon" style="background-image:url(${DDR_CHAMP}/${p.championName}.png)"></div>
-                <span class="b-p-name" style="${isMe ? 'font-weight:800;color:#fff;' : ''}">${p.summonerName?.substring(0, 8) ?? '?'}</span>
+                <span class="b-p-name" style="${isMe ? 'font-weight:800;color:#fff;' : ''}">${displayName.substring(0, 8)}</span>
             </div>`;
     };
 
-    // Badges
+
     let badges = '';
     if (match.largestMultiKill >= 3) badges += `<div class="b-badge gold"><i class="fa-solid fa-medal"></i> Dreifachtötung!</div>`;
     else if (match.largestMultiKill === 2) badges += `<div class="b-badge"><i class="fa-solid fa-dragon"></i> Doppeltötung</div>`;

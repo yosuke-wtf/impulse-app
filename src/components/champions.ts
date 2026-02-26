@@ -1,21 +1,16 @@
-/**
- * ─────────────────────────────────────────────
- *  IMPULSE – Champions Page
- *  Champion-Kacheln, Suche und Rollenfilter.
- * ─────────────────────────────────────────────
- */
+
 
 import { state } from '../main/state';
 
 const DDR = 'https://ddragon.leagueoflegends.com/cdn/14.4.1/img/champion';
 
-// ── Lokaler Zustand ──────────────────────────────────────────────────────────
+
 let currentRole = 'all';
 let currentChampSearch = '';
 
-// ── Public API ───────────────────────────────────────────────────────────────
 
-/** Lädt Champions (einmalig) und zeigt das gefilterte Raster */
+
+
 export async function loadChampions(): Promise<void> {
     if (state.allChampions.length === 0) {
         state.allChampions = await window.ipcRenderer.invoke('get-champions');
@@ -23,7 +18,7 @@ export async function loadChampions(): Promise<void> {
     filterAndRenderChampions();
 }
 
-/** Wendet aktuelle Such- und Rollenfilter an und rendert das Raster */
+
 export function filterAndRenderChampions(): void {
     const filtered = state.allChampions.filter((c: any) => {
         const matchesSearch =
@@ -35,7 +30,7 @@ export function filterAndRenderChampions(): void {
     renderChampions(filtered);
 }
 
-/** Rendert Champion-Kacheln in das Champions-Grid */
+
 export function renderChampions(champs: any[]): void {
     const grid = document.getElementById('champions-grid');
     if (!grid) return;
@@ -55,17 +50,17 @@ export function renderChampions(champs: any[]): void {
     }).join('');
 }
 
-// ── Event Listener ───────────────────────────────────────────────────────────
 
-/** Registriert Suche + Rollenfilter für die Champions-Seite */
+
+
 export function initChampions(): void {
-    // Suchfeld
+
     document.getElementById('champ-search')?.addEventListener('input', (e) => {
         currentChampSearch = (e.target as HTMLInputElement).value.toLowerCase();
         filterAndRenderChampions();
     });
 
-    // Rollen-Buttons (nur innerhalb #view-champions, nicht Tier List)
+
     document.querySelectorAll('#view-champions .role-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('#view-champions .role-btn').forEach(b => b.classList.remove('active'));

@@ -1,13 +1,8 @@
-/**
- * ─────────────────────────────────────────────
- *  IMPULSE – ARAM Data Page
- *  Rendert die ARAM Augment-Sets & Bonus-Karten.
- * ─────────────────────────────────────────────
- */
+
 
 const DDR = 'https://ddragon.leagueoflegends.com/cdn/14.4.1/img/champion';
 
-/** Lädt ARAM-Daten vom Backend und rendert das Karten-Grid */
+
 export async function loadAramData(): Promise<void> {
     const aramData = await window.ipcRenderer.invoke('get-aram-data');
     const grid = document.getElementById('aram-grid');
@@ -16,7 +11,7 @@ export async function loadAramData(): Promise<void> {
     grid.innerHTML = aramData.map(_buildAramCard).join('');
 }
 
-// ── Private Hilfsfunktionen ──────────────────────────────────────────────────
+
 
 function _buildAramCard(item: any): string {
     const bonusesHtml = item.bonuses?.map((b: any) => `

@@ -37,17 +37,20 @@ class RiotService {
             const response = await axios.get(url, {
                 headers: { 'X-Riot-Token': this.apiKey }
             });
-            console.log(`[DEBUG] Riot API Response [${url.split('?')[0]}]:`, JSON.stringify(response.data));
             return response.data;
         } catch (error: any) {
             if (error.response?.status === 404) return null;
+            if (error.response?.status === 403) {
+
+                throw error;
+            }
             console.error(`Riot API Error [${url}]:`, error.response?.status, error.message);
             throw error;
         }
     }
 
     async getSummonerResolve(input: string) {
-        // Handle Name#Tag
+
         if (input.includes('#')) {
             const [gameName, tagLine] = input.split('#');
             const account = await this.request(`https://${this.routingRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`);
@@ -55,7 +58,7 @@ class RiotService {
             return this.getSummonerByPuuid(account.puuid);
         }
 
-        // Try traditional summoner name (deprecated but still works for many)
+
         return this.request(`https://${this.region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(input)}`);
     }
 
@@ -65,6 +68,10 @@ class RiotService {
 
     async getLeagueEntries(summonerId: string) {
         return this.request(`https://${this.region}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`);
+    }
+
+    async getLeagueEntriesByPuuid(puuid: string) {
+        return this.request(`https://${this.region}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`);
     }
 
     async getMatchHistory(puuid: string, count: number = 20) {

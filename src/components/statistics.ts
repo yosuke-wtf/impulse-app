@@ -2,7 +2,7 @@ import { state } from '../main/state';
 
 const DDR = 'https://ddragon.leagueoflegends.com/cdn/14.4.1/img/champion';
 
-/** Lädt Champions (falls noch nicht geladen) und zeigt die Statisiken-Tabelle */
+
 export async function loadStatistics(): Promise<void> {
     if (state.allChampions.length === 0) {
         state.allChampions = await window.ipcRenderer.invoke('get-champions');
@@ -10,7 +10,6 @@ export async function loadStatistics(): Promise<void> {
     renderStatistics(state.allChampions);
 }
 
-/** Rendert die Statistiken-Tabelle mit den übergebenen Champions */
 export function renderStatistics(champs: any[]): void {
     const body = document.getElementById('stats-list-body');
     if (!body) return;
@@ -43,7 +42,7 @@ export function renderStatistics(champs: any[]): void {
     }).join('');
 }
 
-/** Registriert den Such-Handler für die Statistiken-Seite */
+
 export function initStatisticsSearch(): void {
     document.getElementById('stats-search')?.addEventListener('input', (e) => {
         const val = (e.target as HTMLInputElement).value.toLowerCase();

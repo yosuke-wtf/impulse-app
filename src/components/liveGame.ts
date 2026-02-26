@@ -1,26 +1,17 @@
-/**
- * ─────────────────────────────────────────────
- *  IMPULSE – Live Game Tracking
- *  Prüft ob der Spieler im Spiel ist.
- *  Zeigt Live-Teilnehmerdaten oder Featured Games.
- * ─────────────────────────────────────────────
- */
-
 import { state } from '../main/state';
 import { updateOverlayWindow } from './overlayUI';
 
-const DDR = 'https://ddragon.leagueoflegends.com/cdn/14.4.1/img/champion';
+const DDR = 'https://ddragon.leagueoflegends.com/cdn/16.4.1/img/champion';
 
-// ── Public API ───────────────────────────────────────────────────────────────
 
-/** Startet das Live-Tracking (pollt alle 60 Sekunden) */
+
 export function startLiveTracking(): void {
     if (state.liveTrackingInterval) clearInterval(state.liveTrackingInterval);
     checkActiveGame();
     state.liveTrackingInterval = setInterval(checkActiveGame, 60_000);
 }
 
-/** Prüft einmalig ob der Spieler in einem aktiven Spiel ist */
+
 export async function checkActiveGame(): Promise<void> {
     if (!state.currentUser) return;
 
@@ -31,13 +22,13 @@ export async function checkActiveGame(): Promise<void> {
         });
 
         if (activeGame) {
-            // Spieler ist in einem Spiel → Overlay anzeigen und UI aktualisieren
+
             if (state.isOverlayEnabled) {
                 window.ipcRenderer.invoke('toggle-overlay', true);
             }
             updateLiveUI(activeGame);
         } else {
-            // Kein aktives Spiel → Overlay verbergen und Featured Games zeigen
+
             window.ipcRenderer.invoke('toggle-overlay', false);
             renderFeaturedGames();
         }
@@ -46,9 +37,6 @@ export async function checkActiveGame(): Promise<void> {
     }
 }
 
-// ── Privat ───────────────────────────────────────────────────────────────────
-
-/** Rendert die eigentliche Live-Game-Ansicht mit Teilnehmern und Rängen */
 async function updateLiveUI(game: any): Promise<void> {
     if (state.allChampions.length === 0) {
         state.allChampions = await window.ipcRenderer.invoke('get-champions');
@@ -60,7 +48,7 @@ async function updateLiveUI(game: any): Promise<void> {
     ) ?? game.participants[0];
 
     if (participantsList) {
-        // Initiales Rendering (Analyzing…)
+
         participantsList.innerHTML = game.participants.map((p: any) => {
             const isAlly = p.teamId === selfMatch.teamId;
             const champInfo = state.allChampions.find((c: any) => c.key === String(p.championId));
@@ -72,13 +60,13 @@ async function updateLiveUI(game: any): Promise<void> {
                         background-image:url(${DDR}/${champImg});
                         width:32px; height:32px; background-size:cover; border-radius:4px;">
                     </div>
-                    <span class="p-name">${p.summonerName ?? 'Hidden'}</span>
+                    <span class="p-name">${p.riotId || p.summonerName || 'Hidden'}</span>
                     <span class="p-rank rank-placeholder">Analyzing...</span>
                     <span class="p-winrate wr-placeholder"></span>
                 </div>`;
         }).join('');
 
-        // Ränge asynchron nachladen
+
         try {
             const ranks = await window.ipcRenderer.invoke('get-live-participants-ranks', {
                 participants: game.participants,
@@ -99,11 +87,11 @@ async function updateLiveUI(game: any): Promise<void> {
         }
     }
 
-    // Overlay-Fenster aktualisieren
+
     updateOverlayWindow(game);
 }
 
-/** Zeigt Featured Games wenn der Spieler nicht in einem Spiel ist */
+
 async function renderFeaturedGames(): Promise<void> {
     if (state.allChampions.length === 0) {
         state.allChampions = await window.ipcRenderer.invoke('get-champions');

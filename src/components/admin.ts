@@ -1,18 +1,12 @@
-/**
- * ─────────────────────────────────────────────
- *  IMPULSE – Admin Panel
- *  Discord-ID Verifizierung und globale
- *  Ankündigungs-Broadcast-Funktion.
- * ─────────────────────────────────────────────
- */
 
-/** Registriert alle Admin-Panel-Handler */
+
+
 export function initAdmin(): void {
     _initVerification();
     _initAnnouncement();
 }
 
-// ── Private Handler ──────────────────────────────────────────────────────────
+
 
 function _initVerification(): void {
     const discordInput = document.getElementById('admin-discord-id') as HTMLInputElement;

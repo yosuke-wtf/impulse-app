@@ -1,34 +1,23 @@
-/**
- * ─────────────────────────────────────────────
- *  IMPULSE – Authentication & Account Detection
- *  Verwaltet den Login-Screen, Auto-Detect via
- *  LCU, manuellen Login und Session-Persistenz.
- * ─────────────────────────────────────────────
- */
+
 
 import { state } from '../main/state';
 import { fetchMatchHistory } from './matchHistory';
 import { startLiveTracking } from './liveGame';
 
-// ── DOM-Elemente ─────────────────────────────────────────────────────────────
+
 const loginScreen = document.getElementById('login-screen');
 const loginStatus = document.getElementById('login-status');
 const retryBtn = document.getElementById('manual-login-btn');
 const detectionView = document.getElementById('detection-view');
 const manualView = document.getElementById('manual-login-view');
 
-// ── Public API ───────────────────────────────────────────────────────────────
 
-/**
- * Startet den Account-Erkennungsfluss:
- * 1. Session aus localStorage versuchen
- * 2. LCU (League-Client) abfragen
- * 3. Manuellen Login anbieten
- */
+
+
 export async function detectAccount(): Promise<void> {
     if (loginStatus) loginStatus.textContent = 'Verbinde mit Riot Servern…';
 
-    // ── Schritt 1: Gespeicherte Session (30 Tage) ────────────────────────────
+
     const savedSession = localStorage.getItem('impulse_session');
     if (savedSession) {
         const session = JSON.parse(savedSession);
@@ -41,7 +30,7 @@ export async function detectAccount(): Promise<void> {
         }
     }
 
-    // ── Schritt 2: LCU (League Client Unlock) ───────────────────────────────
+
     try {
         const res = await window.ipcRenderer.invoke('get-summoner-info');
         if (res?.success) {
@@ -59,25 +48,25 @@ export async function detectAccount(): Promise<void> {
     }
 }
 
-/** Aktualisiert alle UI-Elemente die den Spieler anzeigen */
+
 export function updateSummonerUI(data: any): void {
-    // Name überall aktualisieren
+
     document.querySelectorAll('.summoner-name, #summoner-name-display, .current-acc-name, #welcome-name')
         .forEach(el => el.textContent = data.name);
 
-    // Rang
+
     const rankField = document.getElementById('summoner-rank-display');
     if (rankField) rankField.textContent = data.rank;
 
-    // Profilbild
-    const iconUrl = `https://ddragon.leagueoflegends.com/cdn/14.4.1/img/profileicon/${data.iconId}.png`;
+
+    const iconUrl = `https://ddragon.leagueoflegends.com/cdn/16.4.1/img/profileicon/${data.iconId}.png`;
     const summonerIcon = document.getElementById('summoner-icon');
     if (summonerIcon) {
         summonerIcon.style.backgroundImage = `url(${iconUrl})`;
         summonerIcon.style.backgroundSize = 'cover';
     }
 
-    // Dashboard-Widgets
+
     const dhAvatar = document.getElementById('dh-avatar-img');
     if (dhAvatar) dhAvatar.style.backgroundImage = `url(${iconUrl})`;
 
@@ -87,14 +76,14 @@ export function updateSummonerUI(data: any): void {
     const dhRank = document.getElementById('dh-rank');
     if (dhRank) dhRank.textContent = data.rank;
 
-    // Settings Avatar
+
     const settingsAvatar = document.getElementById('settings-p-avatar');
     if (settingsAvatar) {
         settingsAvatar.style.backgroundImage = `url(${iconUrl})`;
         settingsAvatar.style.backgroundSize = 'cover';
     }
 
-    // Ranked Summary
+
     const summary = document.getElementById('dashboard-summary');
     if (summary) {
         if (data.allRanks?.length > 0) {
@@ -127,22 +116,22 @@ export function updateSummonerUI(data: any): void {
     }
 }
 
-// ── Event Listener ───────────────────────────────────────────────────────────
 
-/** Registriert alle Login-UI-Handler */
+
+
 export function initAuth(): void {
     detectAccount();
 
-    // Manueller Login öffnen
+
     document.getElementById('manual-login-trigger')?.addEventListener('click', _showManualLogin);
 
-    // Zurück zur Auto-Erkennung
+
     document.getElementById('back-to-detection')?.addEventListener('click', () => {
         if (manualView) manualView.style.display = 'none';
         if (detectionView) detectionView.style.display = 'block';
     });
 
-    // Login-Formular absenden
+
     const submitBtn = document.getElementById('login-submit-btn');
     const nameInput = document.getElementById('login-summoner-name') as HTMLInputElement;
     const regionSelect = document.getElementById('login-region') as HTMLSelectElement;
@@ -158,7 +147,7 @@ export function initAuth(): void {
         try {
             const res = await window.ipcRenderer.invoke('get-summoner-info', { name, region });
             if (res?.success) {
-                // Session für 30 Tage speichern
+
                 localStorage.setItem('impulse_session', JSON.stringify({
                     name, region, timestamp: Date.now()
                 }));
@@ -176,7 +165,7 @@ export function initAuth(): void {
         }
     });
 
-    // Logout
+
     document.querySelector('.logout-btn')?.addEventListener('click', () => {
         localStorage.removeItem('impulse_session');
         state.currentUser = null;
@@ -189,7 +178,7 @@ export function initAuth(): void {
     });
 }
 
-// ── Private Hilfsfunktionen ──────────────────────────────────────────────────
+
 
 async function _attemptAutoLogin(name: string, region: string): Promise<boolean> {
     try {

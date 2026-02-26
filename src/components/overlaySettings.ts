@@ -1,14 +1,8 @@
-/**
- * ─────────────────────────────────────────────
- *  IMPULSE – Overlay Settings
- *  Verwaltet alle Overlay-Toggle-Zustände.
- *  Speichert/lädt per IPC in impulse-settings.json
- * ─────────────────────────────────────────────
- */
+
 
 import { state } from '../main/state';
 
-/** Alle bekannten Overlay-Toggle-IDs (müssen mit index.html übereinstimmen) */
+
 export const OVERLAY_TOGGLE_IDS = [
     'toggle-arena-augments',
     'toggle-benchmarking',
@@ -22,7 +16,7 @@ export const OVERLAY_TOGGLE_IDS = [
     'toggle-trinket',
 ] as const;
 
-/** Labels für das In-Game Overlay Badge-Display */
+
 export const OVERLAY_BADGE_LABELS: Record<string, string> = {
     'toggle-arena-augments': 'Augmente',
     'toggle-benchmarking': 'Benchmark',
@@ -36,37 +30,31 @@ export const OVERLAY_BADGE_LABELS: Record<string, string> = {
     'toggle-trinket': 'Trinket',
 };
 
-/** Gibt den aktuellen An/Aus-Status eines Toggles zurück */
+
 export function isToggleActive(id: string): boolean {
     return document.getElementById(id)?.classList.contains('active') ?? false;
 }
 
-/** Einen Toggle-Zustand im Backend persistieren */
+
 function saveToggle(id: string, value: boolean): void {
     window.ipcRenderer.invoke('save-settings', { [id]: value });
 }
 
-/**
- * Lädt gespeicherte Overlay-Einstellungen aus dem Backend
- * und setzt die Toggle-Elemente entsprechend.
- */
+
 async function loadOverlaySettings(): Promise<void> {
     const settings: Record<string, boolean> = await window.ipcRenderer.invoke('load-settings');
     OVERLAY_TOGGLE_IDS.forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         if (id in settings) {
-            // Gespeicherten Zustand wiederherstellen
+
             el.classList.toggle('active', settings[id] === true);
         }
-        // Kein gespeicherter Wert → HTML-Default beibehalten
+
     });
 }
 
-/**
- * Registriert Klick-Handler für alle Toggle-Switches.
- * Klick → CSS-Klasse umschalten + Zustand speichern.
- */
+
 function bindToggleHandlers(): void {
     document.querySelectorAll('.toggle-switch').forEach(toggle => {
         toggle.addEventListener('click', () => {
@@ -74,12 +62,12 @@ function bindToggleHandlers(): void {
             const id = toggle.id;
             const val = toggle.classList.contains('active');
 
-            // Alle Overlay-Toggles automatisch speichern
+
             if (id && (OVERLAY_TOGGLE_IDS as readonly string[]).includes(id)) {
                 saveToggle(id, val);
             }
 
-            // Sonderfall: Haupt-Overlay-Toggle
+
             if (id === 'toggle-ingame-overlay') {
                 state.isOverlayEnabled = val;
                 if (!val) {
@@ -92,7 +80,7 @@ function bindToggleHandlers(): void {
     });
 }
 
-/** Initialisiert das gesamte Overlay-Settings-System */
+
 export async function initOverlaySettings(): Promise<void> {
     await loadOverlaySettings();
     bindToggleHandlers();
