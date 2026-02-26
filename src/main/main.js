@@ -1,16 +1,14 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron'
-import path from 'node:path'
-import * as dotenv from 'dotenv'
-import RiotService from './main/riot-api' // eslint-disable-line
-import fs from 'node:fs'
-import axios from 'axios'
-import https from 'node:https'
-import { autoUpdater } from 'electron-updater'
-
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import path from 'node:path';
+import * as dotenv from 'dotenv';
+import RiotService from './riot-api';
+import fs from 'node:fs';
+import axios from 'axios';
+import https from 'node:https';
+import { autoUpdater } from 'electron-updater';
 // Global LCU Config
-let lcuConfig: { port: string, token: string } | null = null;
+let lcuConfig = null;
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
-
 // Find LCU Lockfile
 function discoverLCU() {
     const lockfilePath = 'C:\\Riot Games\\League of Legends\\lockfile';
@@ -22,11 +20,12 @@ function discoverLCU() {
     }
     return false;
 }
-
 // LCU Request Helper
-async function lcuRequest(method: string, endpoint: string, data?: any) {
-    if (!lcuConfig) discoverLCU();
-    if (!lcuConfig) return null;
+async function lcuRequest(method, endpoint, data) {
+    if (!lcuConfig)
+        discoverLCU();
+    if (!lcuConfig)
+        return null;
     try {
         const response = await axios({
             method,
@@ -39,40 +38,34 @@ async function lcuRequest(method: string, endpoint: string, data?: any) {
             httpsAgent: httpsAgent
         });
         return response.data;
-    } catch (err) {
+    }
+    catch (err) {
         return null;
     }
 }
-
 // Load environment variables - looking in root directory
-dotenv.config({ path: path.join(__dirname, '../.env') })
-dotenv.config({ path: path.join(__dirname, '../src/.env') }) // Backup for different build structures
-dotenv.config({ path: path.join(process.resourcesPath, '.env') }) // For packaged app resources
-dotenv.config({ path: path.join(process.resourcesPath, 'src/.env') }) // For packaged app resources
-
-
-const DIST_PATH = path.join(__dirname, '../dist')
-const PUBLIC_PATH = app.isPackaged ? DIST_PATH : path.join(DIST_PATH, '../public')
-
-process.env.DIST = DIST_PATH
-process.env.VITE_PUBLIC = PUBLIC_PATH
-
-let win: BrowserWindow | null
-let riotService: RiotService | null = null
-
+dotenv.config({ path: path.join(__dirname, '../.env') });
+dotenv.config({ path: path.join(__dirname, '../src/.env') }); // Backup for different build structures
+dotenv.config({ path: path.join(process.resourcesPath, '.env') }); // For packaged app resources
+dotenv.config({ path: path.join(process.resourcesPath, 'src/.env') }); // For packaged app resources
+const DIST_PATH = path.join(__dirname, '../dist');
+const PUBLIC_PATH = app.isPackaged ? DIST_PATH : path.join(DIST_PATH, '../public');
+process.env.DIST = DIST_PATH;
+process.env.VITE_PUBLIC = PUBLIC_PATH;
+let win;
+let riotService = null;
 if (process.env.RIOT_API_KEY && process.env.REGION) {
     riotService = new RiotService(process.env.RIOT_API_KEY, process.env.REGION);
 }
-
 // Verification Log for API Key
 if (process.env.RIOT_API_KEY) {
     const key = process.env.RIOT_API_KEY;
     const maskedKey = `${key.substring(0, 8)}...${key.substring(key.length - 4)}`;
     console.log(`[SYSTEM] Loaded Riot API Key: ${maskedKey}`);
-} else {
+}
+else {
     console.warn('[SYSTEM] No Riot API Key found in .env!');
 }
-
 function createWindow() {
     win = new BrowserWindow({
         icon: path.join(PUBLIC_PATH, 'logo.png'),
@@ -88,52 +81,47 @@ function createWindow() {
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
         },
-    })
-
+    });
     win.webContents.on('did-finish-load', () => {
         win?.webContents.send('api-config', {
             apiKey: 'PROTECTED', // Don't leak full key to console
             region: process.env.REGION,
             summonerName: process.env.SUMMONER_NAME
-        })
-    })
-
+        });
+    });
     if (process.env.VITE_DEV_SERVER_URL) {
-        win.loadURL(process.env.VITE_DEV_SERVER_URL)
-    } else {
-        win.loadFile(path.join(DIST_PATH, 'index.html'))
+        win.loadURL(process.env.VITE_DEV_SERVER_URL);
+    }
+    else {
+        win.loadFile(path.join(DIST_PATH, 'index.html'));
     }
 }
-
 // IPC Handlers for Riot Data
-ipcMain.handle('get-summoner-info', async (_event, args?: { name: string, region: string }) => {
+ipcMain.handle('get-summoner-info', async (_event, args) => {
     const name = args?.name || process.env.SUMMONER_NAME;
     const region = args?.region || process.env.REGION;
-
-    if (!process.env.RIOT_API_KEY) return { success: false, error: 'NO_API_KEY' };
-    if (!name || !region) return { success: false, error: 'MISSING_CONFIG' };
-
+    if (!process.env.RIOT_API_KEY)
+        return { success: false, error: 'NO_API_KEY' };
+    if (!name || !region)
+        return { success: false, error: 'MISSING_CONFIG' };
     // Use specific service for the requested region
     const service = new RiotService(process.env.RIOT_API_KEY, region);
-
     try {
         const summoner = await service.getSummonerResolve(name);
-        if (!summoner) return { success: false, error: 'NOT_FOUND' };
-
+        if (!summoner)
+            return { success: false, error: 'NOT_FOUND' };
         console.log('[DEBUG] Summoner Object Keys:', Object.keys(summoner));
         console.log('[DEBUG] Summoner ID:', summoner.id);
-
         let leagueEntries = [];
         if (summoner.id) {
             leagueEntries = await service.getLeagueEntries(summoner.id);
-        } else {
+        }
+        else {
             console.warn('[WARN] No Summoner ID found (Encrypted ID). Profile might be incomplete.');
         }
-
         // Find solo queue rank
-        const soloQ = leagueEntries.find((e: any) => e.queueType === 'RANKED_SOLO_5x5');
-
-        const allRanks = leagueEntries.map((e: any) => ({
+        const soloQ = leagueEntries.find((e) => e.queueType === 'RANKED_SOLO_5x5');
+        const allRanks = leagueEntries.map((e) => ({
             queueType: e.queueType,
             tier: e.tier,
             rank: e.rank,
@@ -142,7 +130,6 @@ ipcMain.handle('get-summoner-info', async (_event, args?: { name: string, region
             losses: e.losses,
             winrate: Math.round((e.wins / (e.wins + e.losses)) * 100)
         }));
-
         const returnData = {
             success: true,
             data: {
@@ -159,7 +146,8 @@ ipcMain.handle('get-summoner-info', async (_event, args?: { name: string, region
         };
         console.log('[DEBUG] Returning Data:', JSON.stringify(returnData, null, 2));
         return returnData;
-    } catch (err: any) {
+    }
+    catch (err) {
         console.error('IPC get-summoner-info error:', err);
         return {
             success: false,
@@ -168,28 +156,22 @@ ipcMain.handle('get-summoner-info', async (_event, args?: { name: string, region
         };
     }
 });
-
-ipcMain.handle('get-recent-matches', async (_event, puuid: string, regionArg?: string) => {
+ipcMain.handle('get-recent-matches', async (_event, puuid, regionArg) => {
     const region = regionArg || process.env.REGION;
     console.log('[DEBUG] get-recent-matches called with:', { puuid, region });
-
     if (!puuid || puuid === 'undefined') {
         console.error('[ERROR] Matches requested for undefined PUUID!');
         return [];
     }
-
-    if (!process.env.RIOT_API_KEY || !region) return [];
-
+    if (!process.env.RIOT_API_KEY || !region)
+        return [];
     const service = new RiotService(process.env.RIOT_API_KEY, region);
-
     try {
         const matchIds = await service.getMatchHistory(puuid, 5);
-        const matches = await Promise.all(matchIds.map((id: string) => service.getMatchDetails(id)));
-
-        return matches.map((m: any) => {
-            const participant = m.info.participants.find((p: any) => p.puuid === puuid);
+        const matches = await Promise.all(matchIds.map((id) => service.getMatchDetails(id)));
+        return matches.map(m => {
+            const participant = m.info.participants.find((p) => p.puuid === puuid);
             const isRemake = m.info.gameDuration < 300;
-
             return {
                 win: participant.win,
                 remake: isRemake,
@@ -213,7 +195,7 @@ ipcMain.handle('get-recent-matches', async (_event, puuid: string, regionArg?: s
                 largestMultiKill: participant.largestMultiKill,
                 firstBloodKill: participant.firstBloodKill,
                 totalDamageDealtToChampions: participant.totalDamageDealtToChampions,
-                participants: m.info.participants.map((p: any) => ({
+                participants: m.info.participants.map((p) => ({
                     summonerName: p.summonerName,
                     championName: p.championName,
                     teamId: p.teamId,
@@ -221,19 +203,22 @@ ipcMain.handle('get-recent-matches', async (_event, puuid: string, regionArg?: s
                 }))
             };
         });
-    } catch (err) {
+    }
+    catch (err) {
         console.error('IPC get-recent-matches error:', err);
         return [];
     }
 });
-
-ipcMain.handle('get-active-game', async (_event, args: { puuid: string, region: string }) => {
-    if (!process.env.RIOT_API_KEY || !args.puuid || !args.region) return null;
+ipcMain.handle('get-active-game', async (_event, args) => {
+    if (!process.env.RIOT_API_KEY || !args.puuid || !args.region)
+        return null;
     const service = new RiotService(process.env.RIOT_API_KEY, args.region);
     try {
         return await service.getActiveGame(args.puuid);
-    } catch (err: any) {
-        if (err.response?.status === 404) return null; // Not in game
+    }
+    catch (err) {
+        if (err.response?.status === 404)
+            return null; // Not in game
         if (err.response?.status === 403) {
             // New accounts or certain regions might return 403 for spectator calls
             console.warn('[OFFSIDE] Spectator API returned 403 (Forbidden). This is common for new accounts.');
@@ -243,112 +228,101 @@ ipcMain.handle('get-active-game', async (_event, args: { puuid: string, region: 
         return null;
     }
 });
-
-ipcMain.handle('get-featured-games', async (_event, regionArg: string) => {
+ipcMain.handle('get-featured-games', async (_event, regionArg) => {
     const region = regionArg || process.env.REGION || 'euw1';
-    if (!process.env.RIOT_API_KEY) return [];
+    if (!process.env.RIOT_API_KEY)
+        return [];
     const service = new RiotService(process.env.RIOT_API_KEY, region);
     try {
         const data = await service.getFeaturedGames();
         return data?.gameList || [];
-    } catch (err) {
+    }
+    catch (err) {
         console.error('IPC get-featured-games error:', err);
         return [];
     }
 });
-
-ipcMain.handle('verify-admin', async (_event, discordId: string) => {
-    if (!discordId) return false;
+ipcMain.handle('verify-admin', async (_event, discordId) => {
+    if (!discordId)
+        return false;
     const allowedString = process.env.AdminAllowed || '';
-    const adminIds = allowedString.split(',').map((id: string) => id.trim());
+    const adminIds = allowedString.split(',').map((id) => id.trim());
     return adminIds.includes(discordId.trim());
 });
-
 let latestAnnouncement = "";
 let announcementAuthor = "";
 let announcementTime = 0;
-
-ipcMain.handle('post-announcement', async (_event, data: { text: string, author: string }) => {
+ipcMain.handle('post-announcement', async (_event, data) => {
     latestAnnouncement = data.text;
     announcementAuthor = data.author || 'Admin';
     announcementTime = Date.now();
     return true;
 });
-
 ipcMain.handle('get-announcement', async () => {
     return { text: latestAnnouncement, author: announcementAuthor, time: announcementTime };
 });
-
 // Added to fetch live ranks for all participants during the match
-ipcMain.handle('get-live-participants-ranks', async (_event, args: { participants: any[], region: string, gameMode: string }) => {
-    if (!process.env.RIOT_API_KEY || !args.participants || !args.region) return [];
+ipcMain.handle('get-live-participants-ranks', async (_event, args) => {
+    if (!process.env.RIOT_API_KEY || !args.participants || !args.region)
+        return [];
     const service = new RiotService(process.env.RIOT_API_KEY, args.region);
-
-    const resolvedRanks = await Promise.all(
-        args.participants.map(async (p: any) => {
-            try {
-                let summonerId = p.summonerId;
-                if (!summonerId && p.puuid) {
-                    const sum = await service.getSummonerByPuuid(p.puuid);
-                    if (sum) summonerId = sum.id;
-                }
-
-                if (!summonerId) return { puuid: p.puuid, summonerId: p.summonerId, rank: 'Unranked', winrate: 0 };
-
-                const entries = await service.getLeagueEntries(summonerId);
-                let queueType = 'RANKED_SOLO_5x5';
-                if (args.gameMode.includes('FLEX')) queueType = 'RANKED_FLEX_SR';
-                if (args.gameMode.includes('ARAM')) {
-                    // ARAM has no "rank", just show Unranked or generic level
-                    return { puuid: p.puuid, summonerId: p.summonerId, rank: 'ARAM', winrate: '-' };
-                }
-
-                const queueEntry = entries.find((e: any) => e.queueType === queueType) || entries[0];
-
-                if (queueEntry) {
-                    const totalGames = queueEntry.wins + queueEntry.losses;
-                    const winrate = totalGames > 0 ? Math.round((queueEntry.wins / totalGames) * 100) : 0;
-                    return {
-                        puuid: p.puuid,
-                        summonerId: p.summonerId,
-                        rank: `${queueEntry.tier} ${queueEntry.rank}`,
-                        winrate: winrate
-                    };
-                }
-
-                return { puuid: p.puuid, summonerId: p.summonerId, rank: 'Unranked', winrate: 0 };
-            } catch (err) {
-                console.error('Error fetching live participant rank:', err);
-                return { puuid: p.puuid, summonerId: p.summonerId, rank: 'API Limit', winrate: 0 };
+    const resolvedRanks = await Promise.all(args.participants.map(async (p) => {
+        try {
+            let summonerId = p.summonerId;
+            if (!summonerId && p.puuid) {
+                const sum = await service.getSummonerByPuuid(p.puuid);
+                if (sum)
+                    summonerId = sum.id;
             }
-        })
-    );
-
+            if (!summonerId)
+                return { puuid: p.puuid, summonerId: p.summonerId, rank: 'Unranked', winrate: 0 };
+            const entries = await service.getLeagueEntries(summonerId);
+            let queueType = 'RANKED_SOLO_5x5';
+            if (args.gameMode.includes('FLEX'))
+                queueType = 'RANKED_FLEX_SR';
+            if (args.gameMode.includes('ARAM')) {
+                // ARAM has no "rank", just show Unranked or generic level
+                return { puuid: p.puuid, summonerId: p.summonerId, rank: 'ARAM', winrate: '-' };
+            }
+            const queueEntry = entries.find((e) => e.queueType === queueType) || entries[0];
+            if (queueEntry) {
+                const totalGames = queueEntry.wins + queueEntry.losses;
+                const winrate = totalGames > 0 ? Math.round((queueEntry.wins / totalGames) * 100) : 0;
+                return {
+                    puuid: p.puuid,
+                    summonerId: p.summonerId,
+                    rank: `${queueEntry.tier} ${queueEntry.rank}`,
+                    winrate: winrate
+                };
+            }
+            return { puuid: p.puuid, summonerId: p.summonerId, rank: 'Unranked', winrate: 0 };
+        }
+        catch (err) {
+            console.error('Error fetching live participant rank:', err);
+            return { puuid: p.puuid, summonerId: p.summonerId, rank: 'API Limit', winrate: 0 };
+        }
+    }));
     return resolvedRanks;
 });
-
 // --- Tactical Overlay APIs ---
-
 // 1. Gold Difference Calculator
-ipcMain.handle('get-gold-analysis', async (_event, gameData: any) => {
-    if (!gameData || !gameData.participants) return null;
-
+ipcMain.handle('get-gold-analysis', async (_event, gameData) => {
+    if (!gameData || !gameData.participants)
+        return null;
     // In a real app, we'd fetch item values from DataDragon
     // For now, let's mock the analysis
-    const teams: Record<string, number> = { '100': 0, '200': 0 };
-    gameData.participants.forEach((p: any) => {
+    const teams = { '100': 0, '200': 0 };
+    gameData.participants.forEach((p) => {
         // Mock gold calculation based on level and generic item count
         const mockGold = (p.summonerLevel * 500) + 1000;
         teams[p.teamId] += mockGold;
     });
-
     return {
         team100: teams['100'],
         team200: teams['200'],
         diff: Math.abs(teams['100'] - teams['200'])
     };
 });
-
 // 2. Jungle Respawn Timers
 ipcMain.handle('get-jungle-timers', async (_event) => {
     // This would typically monitor game events via LCU or Memory Reading
@@ -358,105 +332,109 @@ ipcMain.handle('get-jungle-timers', async (_event) => {
         { name: 'Dragon', respawnIn: 310, side: 'neutral' }
     ];
 });
-
 // 3. Benchmarking (Performance)
 ipcMain.handle('get-performance-stats', async (_event) => {
     // Local LCU stats
     const stats = await lcuRequest('GET', '/lol-ingame-counter/v1/stats');
     return stats || { cs: 0, csPerMin: 0, kda: "0/0/0" };
 });
-
 // 4. Arena Data
 ipcMain.handle('get-arena-data', async () => {
     return await lcuRequest('GET', '/lol-arena/v1/augments');
 });
-
 // 5. Skill Order
-ipcMain.handle('get-skill-order', async (_event, champId: number) => {
+ipcMain.handle('get-skill-order', async (_event, champId) => {
     return [1, 2, 3, 1, 1, 4, 1]; // Mock: Q, W, E, Q, Q, R, Q
 });
-
 // 6. Trinket Status
 ipcMain.handle('get-trinket-status', async () => {
     const items = await lcuRequest('GET', '/lol-active-inventory/v1/items');
-    return items?.find((i: any) => i.slot === 'Trinket') || null;
+    return items?.find((i) => i.slot === 'Trinket') || null;
 });
-
 // 7. Loading Screen Analysis
-ipcMain.handle('get-loading-analysis', async (_event, participants: any[]) => {
-    if (!participants || !process.env.RIOT_API_KEY) return [];
+ipcMain.handle('get-loading-analysis', async (_event, participants) => {
+    if (!participants || !process.env.RIOT_API_KEY)
+        return [];
     const service = new RiotService(process.env.RIOT_API_KEY, process.env.REGION || 'euw1');
     return await Promise.all(participants.map(async (p) => {
         try {
             const league = await service.getLeagueEntries(p.summonerId);
             return { ...p, league };
-        } catch { return p; }
+        }
+        catch {
+            return p;
+        }
     }));
 });
-
 // 8. Champions API
 ipcMain.handle('get-champions', async () => {
     try {
         const res = await axios.get('https://ddragon.leagueoflegends.com/cdn/14.4.1/data/en_US/champion.json');
         return Object.values(res.data.data);
-    } catch (err) {
+    }
+    catch (err) {
         console.error('Failed to fetch champions:', err);
         return [];
     }
 });
-
 // 9. Global Tier List - Powered by Lolalytics public API
 ipcMain.handle('get-tier-list', async (_event, mode = 'Rangliste Solo') => {
     let queueId = '420';
     let lolalyticsQueue = 'ranked';
-
-    if (mode.includes('ARAM')) { queueId = '450'; lolalyticsQueue = 'aram'; }
-    else if (mode === 'URF') { queueId = '900'; lolalyticsQueue = 'urf'; }
-    else if (mode.includes('Arena')) { queueId = '1700'; lolalyticsQueue = 'arena'; }
-
-    type ChampEntry = { name: string; winRate: number };
-    type TierMap = { SP: ChampEntry[], S: ChampEntry[], A: ChampEntry[], B: ChampEntry[], C: ChampEntry[], D: ChampEntry[] };
-
+    if (mode.includes('ARAM')) {
+        queueId = '450';
+        lolalyticsQueue = 'aram';
+    }
+    else if (mode === 'URF') {
+        queueId = '900';
+        lolalyticsQueue = 'urf';
+    }
+    else if (mode.includes('Arena')) {
+        queueId = '1700';
+        lolalyticsQueue = 'arena';
+    }
     // Build tier map from an array already sorted by win rate (descending)
-    const buildTierMap = (sorted: Array<{ name: string; winRate: number }>): TierMap => {
+    const buildTierMap = (sorted) => {
         const total = sorted.length;
-        const tiers: TierMap = { SP: [], S: [], A: [], B: [], C: [], D: [] };
+        const tiers = { SP: [], S: [], A: [], B: [], C: [], D: [] };
         sorted.forEach(({ name, winRate }, i) => {
             const p = i / total;
-            const entry: ChampEntry = { name, winRate: Math.round(winRate * 100) / 100 };
-            if (p < 0.03) tiers.SP.push(entry);
-            else if (p < 0.15) tiers.S.push(entry);
-            else if (p < 0.40) tiers.A.push(entry);
-            else if (p < 0.65) tiers.B.push(entry);
-            else if (p < 0.85) tiers.C.push(entry);
-            else tiers.D.push(entry);
+            const entry = { name, winRate: Math.round(winRate * 100) / 100 };
+            if (p < 0.03)
+                tiers.SP.push(entry);
+            else if (p < 0.15)
+                tiers.S.push(entry);
+            else if (p < 0.40)
+                tiers.A.push(entry);
+            else if (p < 0.65)
+                tiers.B.push(entry);
+            else if (p < 0.85)
+                tiers.C.push(entry);
+            else
+                tiers.D.push(entry);
         });
         return tiers;
     };
-
     // Step 1: Fetch ALL champions from Data Dragon (needed for Lolalytics ID lookup AND fallback)
     let patch = '14.24.1';
-    let allDDragonChamps: Record<string, any> = {};
+    let allDDragonChamps = {};
     try {
         const versionsRes = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json', { timeout: 5000 });
-        if (versionsRes.data?.length > 0) patch = versionsRes.data[0];
-        const champRes = await axios.get(
-            `https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`,
-            { timeout: 8000 }
-        );
+        if (versionsRes.data?.length > 0)
+            patch = versionsRes.data[0];
+        const champRes = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`, { timeout: 8000 });
         allDDragonChamps = champRes.data.data;
         console.log(`[TIER LIST] Loaded ${Object.keys(allDDragonChamps).length} champions from Data Dragon (patch ${patch})`);
-    } catch (err: any) {
+    }
+    catch (err) {
         console.warn('[TIER LIST] Data Dragon fetch failed:', err?.message);
     }
-
     // Build numeric champion key → DDragon name lookup (e.g. "1" → "Annie")
-    const keyToName: Record<string, string> = {};
+    const keyToName = {};
     for (const [id, info] of Object.entries(allDDragonChamps)) {
-        keyToName[(info as any).key] = id;
+        keyToName[info.key] = id;
     }
     const allChampNames = Object.keys(allDDragonChamps);
-
     // Step 2: Try Lolalytics API (multiple URL formats for robustness)
     try {
         const shortPatch = patch.split('.').slice(0, 2).join('_'); // e.g. "16_3"
@@ -470,8 +448,7 @@ ipcMain.handle('get-tier-list', async (_event, mode = 'Rangliste Solo') => {
             `https://axe.lolalytics.com/mega/?ep=champion&p=d&tier=plat_plus&queue=${queueId}&region=all`,
             `https://axe.lolalytics.com/mega/?ep=champion&p=d&patch=${shortPatch}&tier=gold_plus&queue=${queueId}&region=all`,
         ];
-
-        let lolaData: any = null;
+        let lolaData = null;
         for (const url of urlsToTry) {
             try {
                 console.log(`[TIER LIST] Trying: ${url}`);
@@ -482,51 +459,51 @@ ipcMain.handle('get-tier-list', async (_event, mode = 'Rangliste Solo') => {
                     lolaData = res.data;
                     break;
                 }
-            } catch (e: any) {
+            }
+            catch (e) {
                 console.warn(`[TIER LIST] URL failed: ${e?.message}`);
             }
         }
-
-        if (!lolaData) throw new Error('All Lolalytics URLs failed');
-
+        if (!lolaData)
+            throw new Error('All Lolalytics URLs failed');
         // Lolalytics may nest data under a 'data' key or be a flat map
         const source = (lolaData.data && typeof lolaData.data === 'object') ? lolaData.data : lolaData;
-        const champStats: Array<{ name: string; winRate: number }> = [];
-
+        const champStats = [];
         for (const [champKey, statsArr] of Object.entries(source)) {
-            if (isNaN(Number(champKey))) continue;
-            if (!Array.isArray(statsArr) || statsArr.length < 2) continue;
+            if (isNaN(Number(champKey)))
+                continue;
+            if (!Array.isArray(statsArr) || statsArr.length < 2)
+                continue;
             const name = keyToName[champKey];
-            if (!name) continue;
-
-            const v0 = statsArr[0] as number;
-            const v1 = statsArr[1] as number;
+            if (!name)
+                continue;
+            const v0 = statsArr[0];
+            const v1 = statsArr[1];
             let winRate = 0;
-
             // Try to detect win rate from the array values
-            if (typeof v1 === 'number' && v1 > 1 && v1 < 100) winRate = v1;
-            else if (typeof v1 === 'number' && v1 > 0 && v1 <= 1) winRate = v1 * 100;
-            else if (typeof v0 === 'number' && v0 > 1 && v0 < 100) winRate = v0;
-            else if (typeof v0 === 'number' && typeof v1 === 'number' && v0 > 1000 && v1 < v0) winRate = (v1 / v0) * 100;
-
+            if (typeof v1 === 'number' && v1 > 1 && v1 < 100)
+                winRate = v1;
+            else if (typeof v1 === 'number' && v1 > 0 && v1 <= 1)
+                winRate = v1 * 100;
+            else if (typeof v0 === 'number' && v0 > 1 && v0 < 100)
+                winRate = v0;
+            else if (typeof v0 === 'number' && typeof v1 === 'number' && v0 > 1000 && v1 < v0)
+                winRate = (v1 / v0) * 100;
             if (winRate > 40 && winRate < 70) {
                 champStats.push({ name, winRate });
             }
         }
-
         console.log(`[TIER LIST] Parsed ${champStats.length} champions from Lolalytics`);
-
         if (champStats.length >= 50) {
             champStats.sort((a, b) => b.winRate - a.winRate);
             console.log(`[TIER LIST] Top 5: ${champStats.slice(0, 5).map(c => `${c.name}(${c.winRate.toFixed(1)}%)`).join(', ')}`);
             return buildTierMap(champStats);
         }
         throw new Error(`Only ${champStats.length} valid champions — not enough`);
-
-    } catch (err: any) {
+    }
+    catch (err) {
         console.error('[TIER LIST] Lolalytics failed:', err?.message || err);
     }
-
     // Step 3: Comprehensive fallback — ALL Data Dragon champions with deterministic tier assignment.
     // Uses a hash of champion name so tiers are consistent between opens (not random each time).
     if (allChampNames.length > 10) {
@@ -543,11 +520,9 @@ ipcMain.handle('get-tier-list', async (_event, mode = 'Rangliste Solo') => {
         champStats.sort((a, b) => b.winRate - a.winRate);
         return buildTierMap(champStats);
     }
-
     console.error('[TIER LIST] Complete failure — returning empty tiers');
     return { SP: [], S: [], A: [], B: [], C: [], D: [] };
 });
-
 // 10. ARAM Augments & Sets
 ipcMain.handle('get-aram-data', async () => {
     // Note: Mock data as real Riot API doesn't have an endpoint for ARAM specific Augments & Sets.
@@ -604,10 +579,8 @@ ipcMain.handle('get-aram-data', async () => {
         }
     ];
 });
-
-let overlayWin: BrowserWindow | null = null;
-
-ipcMain.handle('toggle-overlay', (_event, visible: boolean) => {
+let overlayWin = null;
+ipcMain.handle('toggle-overlay', (_event, visible) => {
     if (visible) {
         if (!overlayWin) {
             overlayWin = new BrowserWindow({
@@ -623,74 +596,68 @@ ipcMain.handle('toggle-overlay', (_event, visible: boolean) => {
                     preload: path.join(__dirname, 'preload.js'),
                 },
             });
-
             if (process.env.VITE_DEV_SERVER_URL) {
                 overlayWin.loadURL(`${process.env.VITE_DEV_SERVER_URL}#overlay`);
-            } else {
+            }
+            else {
                 overlayWin.loadFile(path.join(DIST_PATH, 'index.html'), { hash: 'overlay' });
             }
-        } else {
+        }
+        else {
             overlayWin.show();
         }
-    } else {
+    }
+    else {
         overlayWin?.hide();
     }
 });
-
 // 13. Settings Persistence (overlay toggles saved to JSON in userData)
 const settingsPath = path.join(app.getPath('userData'), 'impulse-settings.json');
-
-function readSettings(): Record<string, any> {
+function readSettings() {
     try {
         if (fs.existsSync(settingsPath)) {
             return JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
         }
-    } catch { /* ignore */ }
+    }
+    catch { /* ignore */ }
     return {};
 }
-
-ipcMain.handle('save-settings', (_event, settings: Record<string, any>) => {
+ipcMain.handle('save-settings', (_event, settings) => {
     try {
         const existing = readSettings();
         const merged = { ...existing, ...settings };
         fs.writeFileSync(settingsPath, JSON.stringify(merged, null, 2), 'utf8');
         console.log('[SETTINGS] Saved:', Object.keys(settings).join(', '));
         return { ok: true };
-    } catch (err: any) {
+    }
+    catch (err) {
         console.error('[SETTINGS] Save failed:', err?.message);
         return { ok: false };
     }
 });
-
 ipcMain.handle('load-settings', () => {
     const s = readSettings();
     console.log('[SETTINGS] Loaded', Object.keys(s).length, 'keys');
     return s;
 });
-
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
-        app.quit()
-        win = null
+        app.quit();
+        win = null;
     }
-})
-
+});
 app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow()
+        createWindow();
     }
-})
-
+});
 app.whenReady().then(() => {
     createWindow();
-
     // Auto-Updater Logic
     autoUpdater.checkForUpdatesAndNotify();
-
     autoUpdater.on('update-available', () => {
         console.log('[AUTO-UPDATER] Update available.');
     });
-
     autoUpdater.on('update-downloaded', async () => {
         console.log('[AUTO-UPDATER] Update downloaded. Prompting user.');
         const result = await dialog.showMessageBox({
@@ -699,9 +666,9 @@ app.whenReady().then(() => {
             message: 'Ein neues Update wurde erfolgreich heruntergeladen.\nMöchtest du Impulse jetzt neustarten, um das Update zu installieren?',
             buttons: ['Jetzt installieren', 'Später (beim nächsten Start)']
         });
-
         if (result.response === 0) {
             autoUpdater.quitAndInstall();
         }
     });
 });
+//# sourceMappingURL=main.js.map

@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import path from 'node:path'
 import * as dotenv from 'dotenv'
-import RiotService from './main/riot-api' // eslint-disable-line
+import RiotService from './riot-api'
 import fs from 'node:fs'
 import axios from 'axios'
 import https from 'node:https'
@@ -186,7 +186,7 @@ ipcMain.handle('get-recent-matches', async (_event, puuid: string, regionArg?: s
         const matchIds = await service.getMatchHistory(puuid, 5);
         const matches = await Promise.all(matchIds.map((id: string) => service.getMatchDetails(id)));
 
-        return matches.map((m: any) => {
+        return matches.map(m => {
             const participant = m.info.participants.find((p: any) => p.puuid === puuid);
             const isRemake = m.info.gameDuration < 300;
 

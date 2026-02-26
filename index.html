@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Impulse | Pro Companion</title>
-    <link rel="stylesheet" href="./src/style.css">
+    <link rel="stylesheet" href="./src/style/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -399,6 +399,27 @@
                         <a href="#" class="submenu-link">Arena Duos</a>
                     </div>
 
+                    <div class="champions-filter-bar" style="margin-bottom: 0; padding-bottom: 0;">
+                        <div class="role-filters" id="tier-role-filters">
+                            <button class="role-btn active" data-tierrole="all">Alle</button>
+                            <button class="role-btn" data-tierrole="top">
+                                <i class="fa-solid fa-shield-halved"></i> Top
+                            </button>
+                            <button class="role-btn" data-tierrole="jungle">
+                                <i class="fa-solid fa-tree"></i> Jungle
+                            </button>
+                            <button class="role-btn" data-tierrole="mid">
+                                <i class="fa-solid fa-wand-sparkles"></i> Mid
+                            </button>
+                            <button class="role-btn" data-tierrole="bot">
+                                <i class="fa-solid fa-crosshairs"></i> Bot
+                            </button>
+                            <button class="role-btn" data-tierrole="support">
+                                <i class="fa-solid fa-hand-holding-heart"></i> Support
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="tierlist-container">
                         <div class="tier-section" id="tier-sp">
                             <div class="tier-label s-tier">S+</div>
@@ -474,7 +495,7 @@
                                         <span class="overlay-name">Arena-Augmente & Prismatische Gegenstände</span>
                                         <span class="overlay-tag utility">Utility</span>
                                     </div>
-                                    <div class="toggle-switch active"></div>
+                                    <div class="toggle-switch active" id="toggle-arena-augments"></div>
                                 </div>
                                 <p class="overlay-desc">Einfache und direkte Übersicht über die Arena-Augmente und
                                     Prismatische Gegenstände, während du sie auswählst.</p>
@@ -491,7 +512,7 @@
                                         <span class="overlay-name">Benchmarking</span>
                                         <span class="overlay-tag performance">Leistung</span>
                                     </div>
-                                    <div class="toggle-switch active"></div>
+                                    <div class="toggle-switch active" id="toggle-benchmarking"></div>
                                 </div>
                                 <p class="overlay-desc">Verfolge wichtige Leistungsindikatoren, um die Leistung in
                                     Echtzeit besser beurteilen zu können.</p>
@@ -508,7 +529,7 @@
                                         <span class="overlay-name">ARAM Health Timers</span>
                                         <span class="overlay-tag tracker">Tracker</span>
                                     </div>
-                                    <div class="toggle-switch active"></div>
+                                    <div class="toggle-switch active" id="toggle-aram-timers"></div>
                                 </div>
                                 <p class="overlay-desc">Verfolge die Respawnzeiten der Heal Orbs in der Heulenden
                                     Schlucht.</p>
@@ -525,7 +546,7 @@
                                         <span class="overlay-name">Gegenstands-Wertdifferenz</span>
                                         <span class="overlay-tag tracker">Tracker</span>
                                     </div>
-                                    <div class="toggle-switch active"></div>
+                                    <div class="toggle-switch active" id="toggle-gold-diff"></div>
                                 </div>
                                 <p class="overlay-desc">Einfaches Bewerten und Vergleichen des Wertes von Items aus
                                     Spielerinventaren.</p>
@@ -542,7 +563,7 @@
                                         <span class="overlay-name">Jungle Pfadfindung</span>
                                         <span class="overlay-tag tracker">Tracker</span>
                                     </div>
-                                    <div class="toggle-switch"></div>
+                                    <div class="toggle-switch" id="toggle-jungle-path"></div>
                                 </div>
                                 <p class="overlay-desc">Nimm den effektivsten Weg zur Räumung von Junglecamps, um das
                                     Spiel zu dominieren.</p>
@@ -559,7 +580,7 @@
                                         <span class="overlay-name">Ladebildschirm</span>
                                         <span class="overlay-tag tracker">Tracker</span>
                                     </div>
-                                    <div class="toggle-switch active"></div>
+                                    <div class="toggle-switch active" id="toggle-loading-screen"></div>
                                 </div>
                                 <p class="overlay-desc">Erhalte wichtige Informationen über Verbündete, Feinde,
                                     Champion-Matchups und mehr.</p>
@@ -576,7 +597,7 @@
                                         <span class="overlay-name">Minimap Timer</span>
                                         <span class="overlay-tag tracker">Tracker</span>
                                     </div>
-                                    <div class="toggle-switch active"></div>
+                                    <div class="toggle-switch active" id="toggle-minimap-timer"></div>
                                 </div>
                                 <p class="overlay-desc">Verfolge die Respawn-Zeiten von Dschungelcamps und Inhibitoren.
                                 </p>
@@ -593,7 +614,7 @@
                                         <span class="overlay-name">Empfohlene Reihenfolge der Fertigkeiten</span>
                                         <span class="overlay-tag utility">Utility</span>
                                     </div>
-                                    <div class="toggle-switch"></div>
+                                    <div class="toggle-switch" id="toggle-skill-order"></div>
                                 </div>
                                 <p class="overlay-desc">Zeigt an, welche Fertigkeit im Spiel je nach ausgewähltem
                                     Blitz-Build aufgestuft werden muss.</p>
@@ -610,7 +631,7 @@
                                         <span class="overlay-name">Ultimate Timer</span>
                                         <span class="overlay-tag utility">Utility</span>
                                     </div>
-                                    <div class="toggle-switch active"></div>
+                                    <div class="toggle-switch active" id="toggle-ultimate-timer"></div>
                                 </div>
                                 <p class="overlay-desc">Die Ultimate Timer der Teammates anzeigen.</p>
                             </div>
@@ -627,7 +648,7 @@
                                         <span class="overlay-tag utility">Utility</span>
                                         <span class="overlay-tag tracker">Tracker</span>
                                     </div>
-                                    <div class="toggle-switch active"></div>
+                                    <div class="toggle-switch active" id="toggle-trinket"></div>
                                 </div>
                                 <p class="overlay-desc">Markiere das Trinket wenn es bereit ist verwendet zu werden.</p>
                             </div>
@@ -734,38 +755,57 @@
     </div>
     <!-- IN-GAME OVERLAY CONTAINER (Transparent Window Content) -->
     <div id="in-game-overlay" style="display: none;">
-        <div class="overlay-card blur-card">
-            <div class="overlay-header">
-                <img src="./logo.png" style="width: 20px;">
-                <span>IMPULSE OVERLAY</span>
-                <i class="fa-solid fa-thumbtack active"></i>
+        <div class="overlay-card blur-card"
+            style="width: 320px; padding: 0; overflow: hidden; border-radius: 14px; background: rgba(10,12,20,0.92); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(20px);">
+
+            <!-- Header -->
+            <div class="overlay-header"
+                style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); background: rgba(91,75,184,0.15);">
+                <img src="./logo.png" style="width: 18px; height: 18px; object-fit: contain;">
+                <span
+                    style="font-size: 0.7rem; font-weight: 800; letter-spacing: 0.12em; color: #a78bfa;">IMPULSE</span>
+                <div class="live-status-pill"
+                    style="margin-left: auto; background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.35); font-size: 0.6rem; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.1em; display: flex; align-items: center; gap: 5px;">
+                    <span
+                        style="width: 5px; height: 5px; background: #f87171; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
+                    LIVE
+                </div>
+                <i class="fa-solid fa-thumbtack"
+                    style="color: rgba(255,255,255,0.3); font-size: 0.75rem; cursor: pointer;" title="Pin window"></i>
             </div>
-            <div class="overlay-content">
-                <div class="live-status-pill">LIVE TRACKING</div>
-                <div class="current-champ-box">
-                    <div id="overlay-champ-icon" class="champ-icon-large"></div>
-                    <div class="champ-meta">
-                        <span id="overlay-champ-name">Detected...</span>
-                        <span id="overlay-game-mode">Summoner's Rift</span>
+
+            <!-- Champion & Game Info -->
+            <div
+                style="padding: 14px 16px 10px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                <div id="overlay-champ-icon"
+                    style="width: 48px; height: 48px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 2px solid rgba(91,75,184,0.5); background-size: cover; flex-shrink: 0;">
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <div id="overlay-champ-name"
+                        style="font-weight: 800; font-size: 0.9rem; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        Detecting...</div>
+                    <div id="overlay-game-mode" style="font-size: 0.72rem; color: #a78bfa; margin-top: 2px;">Summoner's
+                        Rift</div>
+                    <div id="overlay-game-time"
+                        style="font-size: 0.68rem; color: rgba(255,255,255,0.35); margin-top: 2px;">Game in progress
                     </div>
                 </div>
+            </div>
 
-                <div class="overlay-section">
-                    <div class="section-label">RECOMMENDED RUNES</div>
-                    <div class="rune-suggestion">
-                        <div class="rune-icon main"></div>
-                        <div class="rune-details">
-                            <span class="r-name">Precision: Conqueror</span>
-                            <span class="r-desc">Auto-Imported</span>
-                        </div>
-                    </div>
-                </div>
+            <!-- Active Overlays Badges -->
+            <div id="overlay-active-badges"
+                style="padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 5px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                <!-- filled dynamically -->
+            </div>
 
-                <div class="overlay-section">
-                    <div class="section-label">TEAM ANALYSIS</div>
-                    <div id="overlay-team-list" class="mini-team-list">
-                        <!-- Polled participants go here -->
-                    </div>
+            <!-- Team Analysis -->
+            <div style="padding: 10px 16px 14px;">
+                <div
+                    style="font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); margin-bottom: 8px;">
+                    TEAM ANALYSE</div>
+                <div id="overlay-team-list" class="mini-team-list"
+                    style="display: flex; flex-direction: column; gap: 6px;">
+                    <!-- filled dynamically -->
                 </div>
             </div>
         </div>
