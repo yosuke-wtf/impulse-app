@@ -3,7 +3,7 @@
 import { state } from '../main/state';
 import { OVERLAY_TOGGLE_IDS, OVERLAY_BADGE_LABELS, isToggleActive } from './overlaySettings';
 
-const DDR = 'https://ddragon.leagueoflegends.com/cdn/14.4.1/img/champion';
+const DDR = 'https://ddragon.leagueoflegends.com/cdn/16.4.1/img/champion';
 
 
 export function initOverlayMode(): void {

@@ -1,6 +1,8 @@
 {
-    "name": "impulse-blitz",
-    "version": "1.0.0",
+    "name": "impulse",
+    "version": "1.0.1",
+    "description": "Impulse | Pro Companion for League of Legends",
+    "author": "yosuke-wtf",
     "main": "dist-electron/main.js",
     "scripts": {
         "dev": "vite",
