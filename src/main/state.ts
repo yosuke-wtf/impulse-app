@@ -1,3 +1,11 @@
+/**
+ * ─────────────────────────────────────────────
+ *  IMPULSE – Shared Application State
+ *  Wird von allen Komponenten importiert und
+ *  direkt mutiert (ES-Module teilen Instanzen).
+ * ─────────────────────────────────────────────
+ */
+
 export const state = {
     /** Eingeloggter Benutzer (null = nicht eingeloggt) */
     currentUser: null as any,

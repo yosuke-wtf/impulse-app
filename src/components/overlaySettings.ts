@@ -85,8 +85,6 @@ function bindToggleHandlers(): void {
                 if (!val) {
                     window.ipcRenderer.invoke('toggle-overlay', false);
                 } else {
-                    // checkActiveGame wird hier über liveGame aufgerufen
-                    // (liveGame importiert nicht overlaySettings → kein Zirkel)
                     window.ipcRenderer.invoke('toggle-overlay', true);
                 }
             }
